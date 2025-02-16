@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/router";
+import AuthContext from "../../context/AuthContext";
 
 export default function PostPage() {
   const router = useRouter();
   const { id } = router.query;
+  const { user } = useContext(AuthContext);
   const [post, setPost] = useState(null);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
@@ -21,12 +23,13 @@ export default function PostPage() {
   }, [id]);
 
   const handleCommentSubmit = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!user) {
       alert("Debes iniciar sesión para comentar.");
       return;
     }
-
+  
+    const token = localStorage.getItem("token");
+  
     const response = await fetch(`http://localhost:4000/api/comments/${id}`, {
       method: "POST",
       headers: {
@@ -35,11 +38,16 @@ export default function PostPage() {
       },
       body: JSON.stringify({ content: comment })
     });
-
-    const data = await response.json();
-    setComments([...comments, data]);
-    setComment(""); // Limpiar input
+  
+    if (response.ok) {
+      const newComment = await response.json();
+      setComments([...comments, newComment]); 
+      setComment(""); 
+    } else {
+      alert("❌ Error al agregar comentario.");
+    }
   };
+  
 
   if (!post) return <p>Cargando...</p>;
 
@@ -49,9 +57,9 @@ export default function PostPage() {
       <p>{post.content}</p>
       <p className="text-sm text-gray-500">Autor: {post.author?.username}</p>
 
-      <h3 className="text-xl font-semibold mt-5">Comentarios</h3>
+      <h3 className="text-xl font-semibold mt-5">🗨️ Comentarios</h3>
       {comments.length === 0 ? <p>No hay comentarios aún.</p> : (
-        <ul>
+        <ul className="border p-3 rounded">
           {comments.map((c) => (
             <li key={c._id} className="border-b py-2">
               <strong>{c.author.username}</strong>: {c.content}
@@ -60,18 +68,22 @@ export default function PostPage() {
         </ul>
       )}
 
-      <textarea
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        className="border w-full p-2 mt-4"
-        placeholder="Escribe un comentario..."
-      />
-      <button
-        onClick={handleCommentSubmit}
-        className="bg-blue-500 text-white px-4 py-2 mt-2 rounded"
-      >
-        Comentar
-      </button>
+      {user && (
+        <div className="mt-5">
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="border w-full p-2 rounded"
+            placeholder="Escribe un comentario..."
+          />
+          <button
+            onClick={handleCommentSubmit}
+            className="bg-blue-500 text-white px-4 py-2 mt-2 rounded"
+          >
+            Comentar 📝
+          </button>
+        </div>
+      )}
     </div>
   );
 }

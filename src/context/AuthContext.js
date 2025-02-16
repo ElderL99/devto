@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetch("http://localhost:4000/api/auth/user", {
+      fetch("http://localhost:4000/api/auth/user", { // Asegurar que esta ruta exista
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
         .catch(() => setUser(null));
     }
   }, []);
-
+  
   const login = (token, userData) => {
     localStorage.setItem("token", token);
     setUser(userData);

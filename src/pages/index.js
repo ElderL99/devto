@@ -9,7 +9,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         console.log("Datos recibidos:", data); 
-        setPosts(data.posts || []); // Evitar que `posts` sea undefined
+        setPosts(data.posts || []); 
       })
       .catch((error) => console.error("Error al cargar los posts:", error));
   }, []);
